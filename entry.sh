@@ -11,20 +11,11 @@ if [ ! "$(ls -A /etc/ssh)" ]; then
    cp -a /etc/ssh.cache/* /etc/ssh/
 fi
 
-set_hostkeys() {
-    printf '%s\n' \
-        'set /files/etc/ssh/sshd_config/HostKey[1] /etc/ssh/keys/ssh_host_rsa_key' \
-        'set /files/etc/ssh/sshd_config/HostKey[2] /etc/ssh/keys/ssh_host_dsa_key' \
-        'set /files/etc/ssh/sshd_config/HostKey[3] /etc/ssh/keys/ssh_host_ecdsa_key' \
-        'set /files/etc/ssh/sshd_config/HostKey[4] /etc/ssh/keys/ssh_host_ed25519_key' \
-    | augtool -s
-}
-
 print_fingerprints() {
     local BASE_DIR=${1-'/etc/ssh'}
     for item in dsa rsa ecdsa ed25519; do
         echo ">>> Fingerprints for ${item} host key"
-        ssh-keygen -E md5 -lf ${BASE_DIR}/ssh_host_${item}_key 
+        ssh-keygen -E md5 -lf ${BASE_DIR}/ssh_host_${item}_key
         ssh-keygen -E sha256 -lf ${BASE_DIR}/ssh_host_${item}_key
         ssh-keygen -E sha512 -lf ${BASE_DIR}/ssh_host_${item}_key
     done
@@ -33,7 +24,6 @@ print_fingerprints() {
 # Generate Host keys, if required
 if ls /etc/ssh/keys/ssh_host_* 1> /dev/null 2>&1; then
     echo ">> Host keys in keys directory"
-    set_hostkeys
     print_fingerprints /etc/ssh/keys
 elif ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
     echo ">> Host keys exist in default location"
@@ -44,18 +34,10 @@ else
     mkdir -p /etc/ssh/keys
     ssh-keygen -A
     mv /etc/ssh/ssh_host_* /etc/ssh/keys/
-    set_hostkeys
     print_fingerprints /etc/ssh/keys
 fi
 
 # Fix permissions, if writable
-if [ -w ~/.ssh ]; then
-    chown root:root ~/.ssh && chmod 700 ~/.ssh/
-fi
-if [ -w ~/.ssh/authorized_keys ]; then
-    chown root:root ~/.ssh/authorized_keys
-    chmod 600 ~/.ssh/authorized_keys
-fi
 if [ -w /etc/authorized_keys ]; then
     chown root:root /etc/authorized_keys
     chmod 755 /etc/authorized_keys
@@ -98,8 +80,6 @@ if [[ "${SFTP_MODE}" == "true" ]]; then
 
     printf '%s\n' \
         'set /files/etc/ssh/sshd_config/Subsystem/sftp "internal-sftp"' \
-        'set /files/etc/ssh/sshd_config/AllowTCPForwarding no' \
-        'set /files/etc/ssh/sshd_config/X11Forwarding no' \
         'set /files/etc/ssh/sshd_config/ForceCommand internal-sftp' \
         'set /files/etc/ssh/sshd_config/ChrootDirectory /data' \
     | augtool -s
