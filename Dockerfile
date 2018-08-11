@@ -11,8 +11,8 @@ RUN apk update && \
     augtool 'set /files/etc/ssh/sshd_config/PermitRootLogin "no"' && \
     augtool 'set /files/etc/ssh/sshd_config/ChallengeResponseAuthentication "no"' && \
     augtool 'set /files/etc/ssh/sshd_config/PasswordAuthentication "no"' && \
-    augtool 'set /files/etc/ssh/sshd_config/UsePAM "no"' && \
     augtool 'set /files/etc/ssh/sshd_config/AllowTcpForwarding "no"' && \
+    augtool 'set /files/etc/ssh/sshd_config/X11Forwarding "no"' && \
     cp -a /etc/ssh /etc/ssh.cache && \
     rm -rf /var/cache/apk/*
 

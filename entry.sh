@@ -11,6 +11,16 @@ if [ ! "$(ls -A /etc/ssh)" ]; then
    cp -a /etc/ssh.cache/* /etc/ssh/
 fi
 
+
+set_hostkeys() {
+    printf '%s\n' \
+        'set /files/etc/ssh/sshd_config/HostKey[1] /etc/ssh/keys/ssh_host_rsa_key' \
+        'set /files/etc/ssh/sshd_config/HostKey[2] /etc/ssh/keys/ssh_host_dsa_key' \
+        'set /files/etc/ssh/sshd_config/HostKey[3] /etc/ssh/keys/ssh_host_ecdsa_key' \
+        'set /files/etc/ssh/sshd_config/HostKey[4] /etc/ssh/keys/ssh_host_ed25519_key' \
+    | augtool -s
+}
+
 print_fingerprints() {
     local BASE_DIR=${1-'/etc/ssh'}
     for item in dsa rsa ecdsa ed25519; do
@@ -24,6 +34,7 @@ print_fingerprints() {
 # Generate Host keys, if required
 if ls /etc/ssh/keys/ssh_host_* 1> /dev/null 2>&1; then
     echo ">> Host keys in keys directory"
+    set_hostkeys
     print_fingerprints /etc/ssh/keys
 elif ls /etc/ssh/ssh_host_* 1> /dev/null 2>&1; then
     echo ">> Host keys exist in default location"
@@ -34,6 +45,7 @@ else
     mkdir -p /etc/ssh/keys
     ssh-keygen -A
     mv /etc/ssh/ssh_host_* /etc/ssh/keys/
+    set_hostkeys
     print_fingerprints /etc/ssh/keys
 fi
 
